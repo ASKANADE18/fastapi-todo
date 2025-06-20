@@ -1,8 +1,8 @@
-const API_URL = "https://fastapi-todo-ntrn.onrender.com/";
+const API_URL = "/tasks/";
 
 // Load tasks from backend
 async function loadTasks() {
-  const res = await fetch("/tasks/");
+  const res = await fetch(API_URL);
   const tasks = await res.json();
   const list = document.getElementById("taskList");
   list.innerHTML = "";
@@ -22,7 +22,7 @@ async function addTask() {
     return;
   }
 
-  const response = await fetch("/tasks/", {
+  const response = await fetch(API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -30,10 +30,14 @@ async function addTask() {
     body: JSON.stringify({ title: taskText })
   });
 
-  const newTask = await response.json();
-  const li = createTaskElement(newTask);
-  document.getElementById('taskList').appendChild(li);
-  input.value = "";
+  if (response.ok) {
+    const newTask = await response.json();
+    const li = createTaskElement(newTask);
+    document.getElementById('taskList').appendChild(li);
+    input.value = "";
+  } else {
+    alert("Failed to add task.");
+  }
 }
 
 // Create a task item
@@ -43,12 +47,20 @@ function createTaskElement(task) {
 
   const deleteBtn = document.createElement('button');
   deleteBtn.textContent = '❌';
+
   deleteBtn.onclick = async () => {
-    await fetch(`${API_URL}${task.id}`, { method: "DELETE" });
-    li.remove();
+    const response = await fetch(`${API_URL}${task.id}`, {
+      method: "DELETE"
+    });
+
+    if (response.ok) {
+      li.remove();
+    } else {
+      alert("Failed to delete task.");
+    }
   };
 
-  // Double-click to edit
+  // Double-click to edit task
   li.ondblclick = () => {
     const input = document.createElement('input');
     input.type = 'text';
@@ -63,16 +75,32 @@ function createTaskElement(task) {
     input.addEventListener("keypress", async function (e) {
       if (e.key === "Enter") {
         const newTitle = input.value.trim();
-        if (newTitle !== "") {
-          const res = await fetch(`${API_URL}${task.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: newTitle })
-          });
+        if (newTitle === "") {
+          alert("Task title cannot be empty.");
+          return;
+        }
+
+        const res = await fetch(`${API_URL}${task.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: newTitle })
+        });
+
+        if (res.ok) {
           const updatedTask = await res.json();
           li.textContent = updatedTask.title;
           li.appendChild(deleteBtn);
+        } else {
+          alert("Failed to update task.");
         }
+      }
+    });
+
+    // Optional: Press Escape to cancel editing
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        li.textContent = task.title;
+        li.appendChild(deleteBtn);
       }
     });
   };
@@ -81,7 +109,7 @@ function createTaskElement(task) {
   return li;
 }
 
-// Support Enter key
+// Support Enter key in input field
 document.getElementById('taskInput').addEventListener('keypress', function (e) {
   if (e.key === 'Enter') {
     addTask();
