@@ -2,15 +2,13 @@ const API_URL = "https://fastapi-todo-ntrn.onrender.com/";
 
 // Load tasks from backend
 async function loadTasks() {
-  const response = await fetch(API_URL);
-  const tasks = await response.json();
-
-  const taskList = document.getElementById('taskList');
-  taskList.innerHTML = ""; // Clear list before loading
-
+  const res = await fetch("/tasks/");
+  const tasks = await res.json();
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
   tasks.forEach(task => {
     const li = createTaskElement(task);
-    taskList.appendChild(li);
+    list.appendChild(li);
   });
 }
 
