@@ -18,14 +18,17 @@ async function loadTasks() {
 async function addTask() {
   const input = document.getElementById('taskInput');
   const taskText = input.value.trim();
+
   if (taskText === "") {
     alert("Please enter a task.");
     return;
   }
 
-  const response = await fetch(API_URL, {
+  const response = await fetch("/tasks/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ title: taskText })
   });
 
