@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: fastapi-todo
+    runtime: python
+    buildCommand: ""
+    startCommand: ./start.sh
+    env: python
+    plan: free
+    region: singapore
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10
